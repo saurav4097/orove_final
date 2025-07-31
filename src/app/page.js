@@ -1,103 +1,194 @@
-import Image from "next/image";
+"use client";
+import React from 'react';
+import { useEffect, useState } from "react";
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation';
 
-export default function Home() {
+export default function HomePage() {
+ const router = useRouter(); // ✅ useRouter must be used inside the component
+ const [isLoggedIn, setIsLoggedIn] = useState(null);
+ useEffect(() => {
+    async function checkAuth() {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
+      setIsLoggedIn(data.authenticated);
+    }
+
+    checkAuth();
+  }, []);
+ 
+  const handleClassroomClick = () => {
+    if (isLoggedIn === null) return;
+    if (isLoggedIn) {
+      router.push("/classroom");
+    } else {
+      router.push("/login");
+    }
+  };
+
+
+  const handleAccountClick = () => {
+    if (isLoggedIn === null) return;
+    if (isLoggedIn) {
+      router.push("/profile");
+    } else {
+      router.push("/login");
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-600 to-indigo-700 text-white">
+      {/* Navbar */}
+      <nav className="flex justify-between items-center px-6 py-4 bg-transparent backdrop-blur-md z-10">
+        <div className="flex items-center gap-2 text-xl font-bold">
+          <Image src="/robot-icon.svg" alt="logo" width={30} height={30} />
+          <span>OROVE</span>
+        </div>
+        <ul className="hidden md:flex gap-6 text-sm font-medium">
+          <li><Link href="#">Home</Link></li>
+          <li><Link href="#">Teacher Tools</Link></li>
+          <li><Link href="#">Shop</Link></li>
+           <li>
+            <button onClick={handleAccountClick}>Account</button>
+        </li>
+          <li><Link href="#">Contact</Link></li>
+          <li><Link href="#">Log Out</Link></li>
+        </ul>
+      </nav>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Hero Section */}
+      <main className="flex flex-col-reverse lg:flex-row items-center justify-between px-6 lg:px-20 py-16 gap-10">
+        <div className="flex-1 text-center lg:text-left">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Welcome to</h1>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-yellow-300 mb-6">The OROVE AI</h2>
+          <p className="text-lg md:text-xl mb-8">
+            India’s First Fully Functional AI Teacher! A smart classroom that adapts to you.
+            Learn faster, deeper, and smarter with our AI-powered education suite built for modern learning.
+          </p>
+          
+            <button onClick={handleClassroomClick}  className="bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-3 px-6 rounded-full shadow-xl transition duration-300">
+              Enter Smart Class
+            </button>
+          
+        </div>
+
+        <div className="flex-1">
+          <Image 
+            src="/ai-classroom.png" 
+            alt="AI Teacher" 
+            width={600} 
+            height={400} 
+            className="w-full h-auto" 
+          />
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+{/* Enhanced Hero-About Section */}
+<section className="bg-gradient-to-br from-indigo-50 to-white py-16 px-6 lg:px-20 text-gray-800">
+  <div className="max-w-6xl mx-auto">
+    <div className="text-center mb-12">
+      <h1 className="text-4xl md:text-5xl font-extrabold text-indigo-800 mb-4">Meet OROVE AI</h1>
+      <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
+        India’s first smart AI teacher powered by <span className="text-indigo-600 font-semibold">Gemini</span>, designed to transform education for every student.
+      </p>
+    </div>
+
+    {/* Layer 1: Introduction */}
+    <div className="bg-white shadow-lg rounded-3xl p-8 mb-10">
+      <h2 className="text-3xl font-bold text-indigo-700 mb-4 text-center">About OROVE</h2>
+      <p className="text-lg md:text-xl leading-relaxed mb-6 text-center">
+        OROVE AI is a revolutionary platform that integrates cutting-edge artificial intelligence to create a real-time, interactive teaching environment.
+        It empowers students and assists educators by providing instant feedback, personalized content, and interactive lectures—anytime, anywhere.
+      </p>
+      <p className="text-lg md:text-xl leading-relaxed text-center">
+        Whether you're from a rural village or a metro city, OROVE ensures access to high-quality education at your fingertips.
+      </p>
+    </div>
+
+    {/* Layer 2: AI Integration */}
+    <div className="bg-gradient-to-r from-indigo-100 via-white to-indigo-100 shadow-inner rounded-3xl p-8 mb-10">
+      <h3 className="text-2xl font-bold text-indigo-800 mb-4 text-center">Powered by Gemini AI</h3>
+      <p className="text-lg md:text-xl leading-relaxed text-center mb-6">
+        OROVE runs on the powerful Gemini AI model, offering:
+      </p>
+      <ul className="text-lg list-disc list-inside text-gray-700 max-w-3xl mx-auto mb-6">
+        <li>Natural human-like understanding and responses</li>
+        <li>Empathetic and context-aware interactions</li>
+        <li>Real-time doubt-solving and lecture generation</li>
+        <li>Daily performance tracking and learning suggestions</li>
+      </ul>
+      <p className="text-center text-lg text-indigo-700 font-medium">
+        It’s like having a personal tutor—smarter, faster, and always available.
+      </p>
+    </div>
+
+    {/* Layer 3: The Movement */}
+    <div className="bg-white shadow-lg rounded-3xl p-8">
+      <h3 className="text-2xl font-bold text-indigo-800 mb-4 text-center">More Than a Tool — A Movement</h3>
+      <p className="text-lg md:text-xl leading-relaxed text-center mb-6">
+        OROVE isn't just software—it’s a mission to equalize education. With Gemini under the hood, it’s capable of reaching every corner of the country,
+        bridging the educational gap with advanced AI systems.
+      </p>
+      <p className="text-lg md:text-xl leading-relaxed text-center mb-4">
+        From downloadable notes to instant class replays and unlimited topics—OROVE ensures no student is left behind.
+      </p>
+      <p className="text-center font-semibold text-indigo-600 text-lg">
+        OROVE is your forever-classroom. Adaptive. Smart. Reliable.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+      {/* Subscription Cards */}
+      <section className="px-6 lg:px-20 py-16 bg-gray-100 text-gray-900">
+        <h2 className="text-3xl font-bold text-center mb-10">Choose Your Plan</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Gold Plan */}
+          <div className="bg-yellow-300 text-black p-6 rounded-2xl shadow-lg">
+            <h3 className="text-2xl font-bold mb-4">Gold Access - ₹99/month</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Unlimited Class Lectures</li>
+              <li>Unlimited Topics</li>
+              <li>Download Notes</li>
+              <li>Doubt Support</li>
+              <li>Access History</li>
+            </ul>
+            <button className="mt-6 bg-black text-white py-2 px-4 rounded-full hover:bg-gray-800">Select Plan</button>
+          </div>
+
+          {/* Coming Soon Plan 1 */}
+          <div className="bg-white text-gray-700 p-6 rounded-2xl border border-gray-300 opacity-50">
+            <h3 className="text-2xl font-bold mb-4">Platinum Plus - ₹199/month</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Everything in Gold</li>
+              <li>AI Study Partner</li>
+              <li>Test Generator</li>
+              <li>Advanced Progress Tracker</li>
+            </ul>
+            <button className="mt-6 bg-gray-300 text-gray-600 py-2 px-4 rounded-full cursor-not-allowed">Coming Soon</button>
+          </div>
+
+          {/* Coming Soon Plan 2 */}
+          <div className="bg-white text-gray-700 p-6 rounded-2xl border border-gray-300 opacity-50">
+            <h3 className="text-2xl font-bold mb-4">Diamond AI Elite - ₹499/month</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>All Features +</li>
+              <li>1-on-1 AI Mentorship</li>
+              <li>Career Counseling Tools</li>
+              <li>Offline Mode</li>
+            </ul>
+            <button className="mt-6 bg-gray-300 text-gray-600 py-2 px-4 rounded-full cursor-not-allowed">Coming Soon</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white text-center py-6 mt-12">
+        <p>&copy; {new Date().getFullYear()} OROVE AI. All rights reserved.</p>
+        <p className="text-sm">Empowering the future of education through AI and innovation.</p>
       </footer>
     </div>
-  );
+  )
 }
