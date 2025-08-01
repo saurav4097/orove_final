@@ -1,8 +1,7 @@
-// pages/api/user/status.ts
-
-import type { NextApiRequest, NextApiResponse } from 'next';
+// app/api/ispremium/route.ts
+import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import User from '@/models/User';
+import User from '@/models/User'; // make sure this path is correct
 
 // Database connection function
 const connectDB = async () => {
@@ -10,25 +9,26 @@ const connectDB = async () => {
   await mongoose.connect(process.env.MONGODB_URI!);
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(request: NextRequest) {
   await connectDB();
 
-  const { email } = req.query;
+  const { searchParams } = new URL(request.url);
+  const email = searchParams.get('email');
 
-  if (!email || typeof email !== 'string') {
-    return res.status(400).json({ message: 'Invalid email' });
+  if (!email) {
+    return NextResponse.json({ message: 'Email is required' }, { status: 400 });
   }
 
   try {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    return res.status(200).json({ isPremium: user.isPremium });
+    return NextResponse.json({ isPremium: user.isPremium }, { status: 200 });
   } catch (error) {
     console.error('Error fetching user:', error);
-    return res.status(500).json({ message: 'Server error' });
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }
