@@ -1,14 +1,14 @@
+// ✅ src/app/api/ispremium/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import User from '@/models/User';
 
-// Connect to MongoDB
 const connectDB = async () => {
   if (mongoose.connections[0].readyState === 1) return;
   await mongoose.connect(process.env.MONGODB_URI!);
 };
 
-// GET request handler
 export async function GET(req: NextRequest) {
   await connectDB();
 
@@ -21,7 +21,6 @@ export async function GET(req: NextRequest) {
 
   try {
     const user = await User.findOne({ email });
-
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
