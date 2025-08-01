@@ -1,7 +1,6 @@
-// /app/layout.tsx
-
 import './globals.css';
 import { ReactNode } from 'react';
+import Script from 'next/script';
 
 export const metadata = {
   title: 'My App',
@@ -13,7 +12,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         {/* Razorpay script */}
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="beforeInteractive" />
       </head>
       <body>{children}</body>
     </html>

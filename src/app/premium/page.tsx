@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import User from "@/models/User";
 import dynamic from 'next/dynamic';
-
+import Link from 'next/link';
 import SubscribeButton from '@/components/SubscribeButton';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
@@ -43,7 +43,7 @@ export default async function PremiumPage() {
     console.error("Token/DB Error:", error);
     return (
       <div className="text-center py-20">
-        Invalid or expired token. Please <a href="/login" className="text-blue-600 underline">log in</a> again.
+        Invalid or expired token. Please <Link href="/login" className="text-blue-600 underline">log in</Link> again.
       </div>
     );
   }
@@ -53,12 +53,12 @@ export default async function PremiumPage() {
       {/* Top Navigation */}
       <div className="flex justify-between items-center px-6 py-4 border-b bg-white shadow-sm">
         <div className="text-2xl font-bold text-purple-700">OROVE</div>
-        <a
+        <Link
           href="/"
           className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
         >
           Back to Home
-        </a>
+        </Link>
       </div>
 
       {/* Premium Status Section */}

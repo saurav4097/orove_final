@@ -63,7 +63,7 @@ export default function HomePage() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Welcome to</h1>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-yellow-300 mb-6">The OROVE AI</h2>
           <p className="text-lg md:text-xl mb-8">
-            India’s First Fully Functional AI Teacher! A smart classroom that adapts to you.
+            India&rsquo;s First Fully Functional AI Teacher! A smart classroom that adapts to you.
             Learn faster, deeper, and smarter with our AI-powered education suite built for modern learning.
           </p>
           
@@ -90,7 +90,7 @@ export default function HomePage() {
     <div className="text-center mb-12">
       <h1 className="text-4xl md:text-5xl font-extrabold text-indigo-800 mb-4">Meet OROVE AI</h1>
       <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
-        India’s first smart AI teacher powered by <span className="text-indigo-600 font-semibold">Gemini</span>, designed to transform education for every student.
+        India&rsquo;s first smart AI teacher powered by <span className="text-indigo-600 font-semibold">Gemini</span>, designed to transform education for every student.
       </p>
     </div>
 
@@ -119,7 +119,7 @@ export default function HomePage() {
         <li>Daily performance tracking and learning suggestions</li>
       </ul>
       <p className="text-center text-lg text-indigo-700 font-medium">
-        It’s like having a personal tutor—smarter, faster, and always available.
+        It&rsquo;s like having a personal tutor—smarter, faster, and always available.
       </p>
     </div>
 
@@ -127,7 +127,7 @@ export default function HomePage() {
     <div className="bg-white shadow-lg rounded-3xl p-8">
       <h3 className="text-2xl font-bold text-indigo-800 mb-4 text-center">More Than a Tool — A Movement</h3>
       <p className="text-lg md:text-xl leading-relaxed text-center mb-6">
-        OROVE isn't just software—it’s a mission to equalize education. With Gemini under the hood, it’s capable of reaching every corner of the country,
+        OROVE isn't just software—It&rsquo;s a mission to equalize education. With Gemini under the hood, It&rsquo;s capable of reaching every corner of the country,
         bridging the educational gap with advanced AI systems.
       </p>
       <p className="text-lg md:text-xl leading-relaxed text-center mb-4">
