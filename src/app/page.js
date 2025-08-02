@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation';
-
+import { Menu, X } from 'lucide-react'; // You can also use Heroicons or custom SVG
 export default function HomePage() {
  const router = useRouter(); // ✅ useRouter must be used inside the component
  const [isLoggedIn, setIsLoggedIn] = useState(null);
+ const [menuOpen, setMenuOpen] = useState(false);
+
  useEffect(() => {
     async function checkAuth() {
       const res = await fetch("/api/check-auth");
@@ -40,22 +42,46 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-600 to-indigo-700 text-white">
       {/* Navbar */}
-      <nav className="flex justify-between items-center px-6 py-4 bg-transparent backdrop-blur-md z-10">
-        <div className="flex items-center gap-2 text-xl font-bold">
-          <Image src="/robot-icon.svg" alt="logo" width={30} height={30} />
-          <span>OROVE</span>
-        </div>
-        <ul className="hidden md:flex gap-6 text-sm font-medium">
-          <li><Link href="#">Home</Link></li>
-          <li><Link href="#">Teacher Tools</Link></li>
-          <li><Link href="#">Shop</Link></li>
-           <li>
-            <button onClick={handleAccountClick}>Account</button>
-        </li>
-          <li><Link href="#">Contact</Link></li>
-          <li><Link href="#">Log Out</Link></li>
-        </ul>
-      </nav>
+     
+
+
+
+<nav className="flex justify-between items-center px-6 py-4 bg-transparent backdrop-blur-md z-10 relative">
+  {/* Logo */}
+  <div className="flex items-center gap-2 text-xl font-bold">
+    <Image src="/robologo.png" alt="logo" width={30} height={30} />
+    <span>OROVE</span>
+  </div>
+
+  {/* Desktop Menu */}
+  <ul className="hidden md:flex gap-6 text-sm font-medium">
+    <li><Link href="#">Home</Link></li>
+    <li><Link href="#">Teacher Tools</Link></li>
+    <li><Link href="#">Shop</Link></li>
+    <li><button onClick={handleAccountClick}>Account</button></li>
+    <li><Link href="#">Contact</Link></li>
+    <li><Link href="#">Log Out</Link></li>
+  </ul>
+
+  {/* Mobile Hamburger Icon */}
+  <div className="md:hidden">
+    <button onClick={() => setMenuOpen(!menuOpen)}>
+      {menuOpen ? <X size={24} /> : <Menu size={24} />}
+    </button>
+  </div>
+
+  {/* Mobile Menu Dropdown */}
+  {menuOpen && (
+    <ul className="absolute top-full right-6 bg-white text-gray-800 rounded-md shadow-lg py-4 px-6 space-y-3 w-48 md:hidden z-50">
+      <li><Link href="#">Home</Link></li>
+      <li><Link href="#">Teacher Tools</Link></li>
+      <li><Link href="#">Shop</Link></li>
+      <li><button onClick={handleAccountClick}>Account</button></li>
+      <li><Link href="#">Contact</Link></li>
+      <li><Link href="#">Log Out</Link></li>
+    </ul>
+  )}
+</nav>
 
       {/* Hero Section */}
       <main className="flex flex-col-reverse lg:flex-row items-center justify-between px-6 lg:px-20 py-16 gap-10">
@@ -75,7 +101,7 @@ export default function HomePage() {
 
         <div className="flex-1">
           <Image 
-            src="/ai-classroom.png" 
+            src="/roboaiclass.jpg" 
             alt="AI Teacher" 
             width={600} 
             height={400} 

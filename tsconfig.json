@@ -32,7 +32,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "src/app/generate-pdf/page.jsx"  ],
   "exclude": [
     "node_modules"
   ]

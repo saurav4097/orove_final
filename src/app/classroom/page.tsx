@@ -4,14 +4,15 @@
 import { useState } from "react";
 import Blackboard from "@/components/Blackboard";
 import { FaDownload, FaPause, FaPlay, FaSearch, FaMicrophone } from 'react-icons/fa';
- 
+ import { useRouter } from "next/navigation";
+
 export default function ClassroomPage() {
   const [query, setQuery] = useState("");
   const [doubtQuery, setDoubtQuery] = useState("");
   const [segments, setSegments] = useState<string[]>([]);
   const [doubtCount, setDoubtCount] = useState(1);
 const [playTrigger, setPlayTrigger] = useState(0);
-
+const router = useRouter();
   const handleSearch = async () => {
   const res = await fetch("/api/ai", {
     method: "POST",
@@ -70,7 +71,60 @@ const handleDoubtSearch = async () => {
   const data = await res.json();
   alert(data.result); // show success/fail message
 };
+//////////////////startlistening///////////////
+const startListening = () => {
+  if (typeof window === "undefined" || !("webkitSpeechRecognition" in window)) {
+    alert("Speech recognition is not supported in this browser.");
+    return;
+  }
 
+  const recognition = new (window as any).webkitSpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = "en-US";
+
+  recognition.onstart = () => {
+    console.log("Voice recognition started. Speak now.");
+  };
+
+  recognition.onerror = (event: any) => {
+    const error = event.error || "Unknown error";
+    console.error("Speech recognition error:", error);
+
+    switch (error) {
+      case "not-allowed":
+        alert("Microphone access denied. Please allow mic permission.");
+        break;
+      case "no-speech":
+        alert("No speech detected. Please try again.");
+        break;
+      case "audio-capture":
+        alert("No microphone found. Please check your device.");
+        break;
+      default:
+        alert("Speech recognition error: " + error);
+    }
+  };
+
+  recognition.onresult = (event: any) => {
+    const transcript = event.results?.[0]?.[0]?.transcript;
+    if (!transcript) {
+      alert("Could not detect any voice input. Please try again.");
+      return;
+    }
+
+    console.log("Voice input:", transcript);
+    setDoubtQuery(transcript);
+
+    setTimeout(() => {
+      handleDoubtSearch(); // trigger the existing logic
+    }, 100);
+  };
+
+  recognition.start();
+};
+
+//////////////////////////////////////////////
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Top Bar */}
@@ -87,8 +141,15 @@ const handleDoubtSearch = async () => {
           <button onClick={handleSearch} className="h-9 px-3 bg-gray-700 hover:bg-gray-600 text-white rounded-r-md">
             <FaSearch />
           </button>
+          
         </div>
-        <div className="w-[80px]"></div>
+        <button
+    onClick={() => router.push("/")}
+    className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded-full"
+  >
+    Back to Home
+  </button>
+      
       </div>
 
       {/* Blackboard */}
@@ -106,8 +167,7 @@ const handleDoubtSearch = async () => {
           Make Notes
         </button>
         <div className="flex items-center gap-4">
-          <button className="text-blue-700 text-xl hover:scale-110"><FaPause /></button>
-          <button className="text-blue-700 text-xl hover:scale-110"><FaPlay /></button>
+         
         </div>
         <div className="flex-1 flex items-center max-w-sm bg-blue-500 rounded-full px-2 py-1">
           <input
@@ -121,7 +181,7 @@ const handleDoubtSearch = async () => {
             <FaSearch />
           </button>
         </div>
-        <button className="bg-blue-600 w-10 h-10 flex items-center justify-center rounded-full text-white text-lg hover:bg-blue-700">
+        <button  onClick={startListening} title="Speak your doubt"  className="bg-blue-600 w-10 h-10 flex items-center justify-center rounded-full text-white text-lg hover:bg-blue-700">
           <FaMicrophone />
         </button>
       </div>

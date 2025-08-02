@@ -30,15 +30,54 @@ export default function HistoryPage() {
     fetchNotes();
   }, []);
 
-  const handleDownload = (note: Note) => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(`Topic: ${note.topic}`, 10, 20);
-    doc.setFontSize(12);
-    doc.text(`Response:`, 10, 30);
+  const formatResponse = (response: string) => {
+    return response
+      .replace(/#+\s?(.*)/g, (match, p1) => `\n\n${p1.toUpperCase()}\n`)
+      .replace(/\*\*(.*?)\*\*/g, (match, p1) => `\n${p1}:\n`)
+      .replace(/[-*]\s/g, '• ')
+      .replace(/\n{2,}/g, '\n\n');
+  };
 
-    const splitText = doc.splitTextToSize(note.response, 180);
-    doc.text(splitText, 10, 40);
+  const handleDownload = (note: Note) => {
+    const doc = new jsPDF('p', 'pt', 'a4');
+    const margin = 40;
+    const maxWidth = 500;
+    let y = margin;
+
+    // Set pale yellow background
+    doc.setFillColor(255, 253, 208); // pale yellow
+    doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+
+    // Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(51, 0, 102); // dark purple
+    doc.text(note.topic, margin, y);
+    y += 30;
+
+    // Subtitle
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Created At: ${new Date(note.createdAt).toLocaleString()}`, margin, y);
+    y += 30;
+
+    // Formatted response
+    const response = formatResponse(note.response);
+    const lines = doc.splitTextToSize(response, maxWidth);
+
+    doc.setFontSize(13);
+    doc.setTextColor(0, 0, 0);
+    lines.forEach(line => {
+      if (y > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        doc.setFillColor(255, 253, 208);
+        doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+        y = margin;
+      }
+      doc.text(line, margin, y);
+      y += 20;
+    });
 
     doc.save(`${note.topic.replace(/[^a-z0-9]/gi, '_')}_notes.pdf`);
   };
