@@ -1,9 +1,9 @@
 'use client';
+
 import { useEffect, useRef, useState } from "react";
 import "@fontsource/shadows-into-light";
 import "./blackboard.css";
 
-// Markdown parser
 function parseMarkdown(text: string): string {
   return text
     .replace(/^# (.*$)/gim, "<h1>$1</h1>")
@@ -12,40 +12,22 @@ function parseMarkdown(text: string): string {
     .replace(/\n/g, "<br />");
 }
 
-export default function Blackboard({ text }: { text: string }) {
+export default function Blackboard({
+  segments,
+  playTrigger,
+}: {
+  segments: string[];
+  playTrigger: number;
+}) {
   const [displayText, setDisplayText] = useState("");
   const [isPlaying, setIsPlaying] = useState(true);
 
   const ref = useRef<HTMLDivElement>(null);
   const indexRef = useRef(0);
-  const fullTextRef = useRef(text);
+  const fullTextRef = useRef("");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    synthRef.current = window.speechSynthesis;
-
-    resetAnimation();
-
-    return () => {
-      clearInterval(intervalRef.current!);
-      synthRef.current?.cancel();
-    };
-  }, [text]);
-
-  const resetAnimation = () => {
-    setDisplayText("");
-    indexRef.current = 0;
-    fullTextRef.current = text;
-    setIsPlaying(true);
-    clearInterval(intervalRef.current!);
-
-    speakFromIndex(0);
-    intervalRef.current = setInterval(writeNextChar, 50);
-  };
 
   const writeNextChar = () => {
     const i = indexRef.current;
@@ -55,6 +37,7 @@ export default function Blackboard({ text }: { text: string }) {
       indexRef.current += 1;
     } else {
       clearInterval(intervalRef.current!);
+      intervalRef.current = null;
     }
   };
 
@@ -62,7 +45,7 @@ export default function Blackboard({ text }: { text: string }) {
     const remainingText = fullTextRef.current.slice(startIndex);
     if (!remainingText.trim()) return;
 
-    synthRef.current?.cancel(); // stop any ongoing speech
+    synthRef.current?.cancel();
 
     const utterance = new SpeechSynthesisUtterance(remainingText);
     utterance.rate = 1;
@@ -71,7 +54,7 @@ export default function Blackboard({ text }: { text: string }) {
 
     const voices = synthRef.current?.getVoices();
     if (voices?.length) {
-      utterance.voice = voices.find(v => v.lang === "en-US") || voices[0];
+      utterance.voice = voices.find((v) => v.lang === "en-US") || voices[0];
     }
 
     utteranceRef.current = utterance;
@@ -81,15 +64,48 @@ export default function Blackboard({ text }: { text: string }) {
   const handlePause = () => {
     setIsPlaying(false);
     clearInterval(intervalRef.current!);
+    intervalRef.current = null;
     synthRef.current?.cancel();
   };
 
   const handlePlay = () => {
     if (indexRef.current >= fullTextRef.current.length) return;
     setIsPlaying(true);
-    intervalRef.current = setInterval(writeNextChar, 50);
-    speakFromIndex(indexRef.current);
+    if (!intervalRef.current) {
+      intervalRef.current = setInterval(writeNextChar, 50);
+      speakFromIndex(indexRef.current);
+    }
   };
+
+  useEffect(() => {
+    fullTextRef.current = segments.join(" \n\n");
+  }, [segments]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    synthRef.current = window.speechSynthesis;
+
+    return () => {
+      clearInterval(intervalRef.current!);
+      synthRef.current?.cancel();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!segments.length) return;
+
+    // Restart animation and speech on new playTrigger
+    fullTextRef.current = segments.join(" \n\n");
+    setDisplayText("");
+    indexRef.current = 0;
+    clearInterval(intervalRef.current!);
+    synthRef.current?.cancel();
+
+    if (isPlaying) {
+      intervalRef.current = setInterval(writeNextChar, 50);
+      speakFromIndex(0);
+    }
+  }, [playTrigger]);
 
   useEffect(() => {
     if (ref.current) {
@@ -99,7 +115,6 @@ export default function Blackboard({ text }: { text: string }) {
 
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center">
-      {/* Blackboard */}
       <div
         ref={ref}
         className="blackboard w-[90%] h-[90%] overflow-y-auto p-6 rounded-xl border border-white"
@@ -110,7 +125,6 @@ export default function Blackboard({ text }: { text: string }) {
         />
       </div>
 
-      {/* Play/Pause Buttons */}
       <div className="mt-4 flex gap-4">
         {!isPlaying ? (
           <button

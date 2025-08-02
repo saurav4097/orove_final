@@ -44,12 +44,6 @@ export async function POST(req: Request) {
     const response = await result.response;
     const text = response.text();
 
-    // 5. Save to MongoDB
-    await Note.create({
-      topic: query,
-      response: text,
-      email,
-    });
 
     // 6. Send response to client
     return NextResponse.json({ result: text });
