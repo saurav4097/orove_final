@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "@fontsource/shadows-into-light";
 import "./blackboard.css";
 
@@ -26,42 +26,9 @@ export default function Blackboard({ text }: { text: string }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Cancel existing speech
-    if (synthRef.current?.speaking) {
-      synthRef.current.cancel();
-    }
-
-    // Reset text and state
-    setDisplayText("");
-    indexRef.current = 0;
-    fullTextRef.current = text;
-    setIsPlaying(true);
-    clearInterval(intervalRef.current!);
-
-    // Setup voice
     synthRef.current = window.speechSynthesis;
-    utteranceRef.current = new SpeechSynthesisUtterance(text);
-    utteranceRef.current.rate = 1;
-    utteranceRef.current.pitch = 1;
-    utteranceRef.current.lang = "en-US";
 
-    const speak = () => {
-      const voices = synthRef.current!.getVoices();
-      if (voices.length > 0) {
-        utteranceRef.current!.voice = voices.find(v => v.lang === 'en-US') || voices[0];
-      }
-      synthRef.current!.speak(utteranceRef.current!);
-    };
-
-    // Wait for voices to load before speaking
-    if (synthRef.current.getVoices().length === 0) {
-      synthRef.current.onvoiceschanged = speak;
-    } else {
-      speak();
-    }
-
-    // Setup typing effect
-    intervalRef.current = setInterval(writeNextChar, 50);
+    resetAnimation();
 
     return () => {
       clearInterval(intervalRef.current!);
@@ -69,10 +36,20 @@ export default function Blackboard({ text }: { text: string }) {
     };
   }, [text]);
 
+  const resetAnimation = () => {
+    setDisplayText("");
+    indexRef.current = 0;
+    fullTextRef.current = text;
+    setIsPlaying(true);
+    clearInterval(intervalRef.current!);
+
+    speakFromIndex(0);
+    intervalRef.current = setInterval(writeNextChar, 50);
+  };
+
   const writeNextChar = () => {
     const i = indexRef.current;
     const full = fullTextRef.current;
-
     if (i < full.length) {
       setDisplayText((prev) => prev + full.charAt(i));
       indexRef.current += 1;
@@ -81,22 +58,37 @@ export default function Blackboard({ text }: { text: string }) {
     }
   };
 
+  const speakFromIndex = (startIndex: number) => {
+    const remainingText = fullTextRef.current.slice(startIndex);
+    if (!remainingText.trim()) return;
+
+    synthRef.current?.cancel(); // stop any ongoing speech
+
+    const utterance = new SpeechSynthesisUtterance(remainingText);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.lang = "en-US";
+
+    const voices = synthRef.current?.getVoices();
+    if (voices?.length) {
+      utterance.voice = voices.find(v => v.lang === "en-US") || voices[0];
+    }
+
+    utteranceRef.current = utterance;
+    synthRef.current?.speak(utterance);
+  };
+
   const handlePause = () => {
     setIsPlaying(false);
     clearInterval(intervalRef.current!);
-    if (synthRef.current?.speaking && !synthRef.current.paused) {
-      synthRef.current.pause();
-    }
+    synthRef.current?.cancel();
   };
 
   const handlePlay = () => {
+    if (indexRef.current >= fullTextRef.current.length) return;
     setIsPlaying(true);
-    if (indexRef.current < fullTextRef.current.length) {
-      intervalRef.current = setInterval(writeNextChar, 50);
-    }
-    if (synthRef.current?.paused) {
-      synthRef.current.resume();
-    }
+    intervalRef.current = setInterval(writeNextChar, 50);
+    speakFromIndex(indexRef.current);
   };
 
   useEffect(() => {
