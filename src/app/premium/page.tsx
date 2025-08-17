@@ -87,7 +87,7 @@ export default async function PremiumPage() {
         <div className="grid md:grid-cols-3 gap-8">
           {/* Gold Plan */}
           <div className="bg-yellow-300 text-black p-6 rounded-2xl shadow-xl hover:scale-105 transition-transform">
-            <h3 className="text-2xl font-bold mb-4">🥇 Gold Access - ₹99/month</h3>
+            <h3 className="text-2xl font-bold mb-4">🥇 Gold Access - ₹199/month</h3>
             <ul className="list-disc pl-6 space-y-2 text-sm">
               <li>Unlimited Class Lectures</li>
               <li>Unlimited Topics</li>

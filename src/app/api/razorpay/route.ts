@@ -9,7 +9,7 @@ const razorpay = new Razorpay({
 export async function POST() {
   try {
     const options = {
-      amount: 9900, // in paise = ₹99
+      amount: 19900, // in paise = ₹99
       currency: 'INR',
       receipt: 'receipt_order_74394',
       payment_capture: 1,

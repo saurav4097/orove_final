@@ -15,7 +15,16 @@ export default function ProfilePage() {
   const [user, setUser] = useState({ username: '', email: '' });
   const [notes, setNotes] = useState<Note[]>([]);
   const router = useRouter();
+const [isLoggedIn, setIsLoggedIn] = useState(null);
+useEffect(() => {
+    async function checkAuth() {
+      const res = await fetch("/api/check-auth");
+      const data = await res.json();
+      setIsLoggedIn(data.authenticated);
+    }
 
+    checkAuth();
+  }, []);
   // Fetch user info
   useEffect(() => {
     async function fetchUser() {
@@ -53,7 +62,15 @@ export default function ProfilePage() {
     await fetch("/api/logout");
     router.push("/");
   };
-
+const handleClassroomClick = () => {
+    if (isLoggedIn === null) return;
+    if (isLoggedIn) {
+     
+      router.push("/classroom");
+    } else {
+      router.push("/login");
+    }
+  };
   const parseBold = (text: string) => {
     const regex = /\*\*(.*?)\*\*/g;
     const parts = [];
@@ -105,80 +122,135 @@ export default function ProfilePage() {
 
     return currentY + lineHeight;
   };
-
-  const handleDownload = (note: Note) => {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'px',
-      format: 'a4',
-    });
-
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const marginX = 40;
-    let y = 50;
-
-    // Background
-    doc.setFillColor(255, 255, 204);
-    doc.rect(0, 0, pageWidth, doc.internal.pageSize.getHeight(), 'F');
-
-    // Title
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(33, 37, 41);
-    const titleWidth = doc.getTextWidth(note.topic);
-    doc.text(note.topic, (pageWidth - titleWidth) / 2, y);
-    y += 30;
-
-    const lines = note.response.split('\n');
-
-    lines.forEach((rawLine) => {
-      if (y > 750) {
-        doc.addPage();
-        doc.setFillColor(255, 255, 204);
-        doc.rect(0, 0, pageWidth, doc.internal.pageSize.getHeight(), 'F');
-        y = 50;
-      }
-
-      const line = rawLine.trim();
-
-      if (line.startsWith('# ') || line.startsWith('## ')) {
-        const isH1 = line.startsWith('# ') && !line.startsWith('## ');
-        const headingText = line.replace(/^#+\s*/, '');
-
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(isH1 ? 18 : 16);
-        doc.setTextColor(isH1 ? 0 : 40, 40, isH1 ? 150 : 90);
-        const hWidth = doc.getTextWidth(headingText);
-        doc.text(headingText, (pageWidth - hWidth) / 2, y);
-        y += isH1 ? 30 : 24;
-      }
-
-      else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
-        const text = `• ${line.replace(/^[-•*]/, '').trim()}`;
-        doc.setFont('Times', 'normal');
-        doc.setFontSize(13);
-        doc.setTextColor(40, 40, 40);
-        const parts = parseBold(text);
-        y = drawFormattedLine(doc, parts, marginX + 10, y, pageWidth - marginX * 2);
-        y += 10;
-      }
-
-      else if (line === '') {
-        y += 10;
-      }
-
-      else {
-        doc.setFont('Times', 'normal');
-        doc.setFontSize(13);
-        doc.setTextColor(60, 60, 60);
-        const parts = parseBold(line);
-        y = drawFormattedLine(doc, parts, marginX, y, pageWidth - marginX * 2);
-        y += 10;
-      }
-    });
-
-    doc.save(`${note.topic.replace(/[^a-z0-9]/gi, '_')}_notes.pdf`);
+const formatResponse = (response: string) => {
+    return response
+      // Headings (# Something)
+      .replace(/#+\s?(.*)/g, (match, p1) => `\n\n## ${p1}\n`)
+      // Bold points (**something**)
+      .replace(/\*\*(.*?)\*\*/g, (match, p1) => `\n${p1}:\n`)
+      // Bullets (- or *)
+      .replace(/[-*]\s/g, '• ')
+      // Remove extra line breaks
+      .replace(/\n{2,}/g, '\n\n');
   };
+  const handleDownload = (note: Note) => {
+      const doc = new jsPDF('p', 'pt', 'a4');
+      const margin = 40;
+      const maxWidth = 500;
+      let y = margin;
+  
+      // Background
+      doc.setFillColor(255, 253, 208); // pale yellow paper
+      doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+  
+      // Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(0, 51, 153); // navy blue
+      doc.text(note.topic, margin, y);
+      y += 30;
+  
+      // Created date
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      doc.setFont('helvetica', 'italic');
+      doc.text(`Created At: ${new Date(note.createdAt).toLocaleString()}`, margin, y);
+      y += 30;
+  
+      // Format response
+      const response = formatResponse(note.response);
+      const lines = response.split('\n');
+  
+      let insideCodeBlock = false;
+      let codeBuffer: string[] = [];
+  
+      const flushCodeBlock = () => {
+        if (codeBuffer.length === 0) return;
+  
+        const codeLines = doc.splitTextToSize(codeBuffer.join('\n'), maxWidth - 20);
+        const boxHeight = codeLines.length * 16 + 20;
+  
+        // Draw black rectangle
+        doc.setFillColor(0, 0, 0);
+        doc.rect(margin - 5, y, maxWidth + 10, boxHeight, 'F');
+  
+        // White code text
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+  
+        let codeY = y + 18;
+        codeLines.forEach(cl => {
+          doc.text(cl, margin, codeY);
+          codeY += 16;
+        });
+  
+        y += boxHeight + 10;
+  
+        // Reset font
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(13);
+        doc.setTextColor(0);
+  
+        codeBuffer = [];
+      };
+  
+      lines.forEach(line => {
+        if (line.trim().startsWith('```')) {
+          if (insideCodeBlock) {
+            // End block
+            flushCodeBlock();
+          }
+          insideCodeBlock = !insideCodeBlock;
+        } else if (insideCodeBlock) {
+          codeBuffer.push(line);
+        } else if (line.startsWith('## ')) {
+          // Heading
+          y += 10;
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(16);
+          doc.setTextColor(0, 51, 153);
+          doc.text(line.replace('## ', ''), margin, y);
+          y += 25;
+        } else if (line.match(/^[A-Za-z0-9].*:\s*$/)) {
+          // Bold subheading style
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(14);
+          doc.setTextColor(102, 0, 153);
+          doc.text(line.trim(), margin, y);
+          y += 20;
+        } else if (line.trim() !== '') {
+          // Normal paragraph or bullet
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(12);
+          doc.setTextColor(0);
+  
+          const wrapped = doc.splitTextToSize(line, maxWidth);
+          wrapped.forEach(l => {
+            if (y > doc.internal.pageSize.getHeight() - margin) {
+              doc.addPage();
+              doc.setFillColor(255, 253, 208);
+              doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+              y = margin;
+            }
+            doc.text(l, margin, y);
+            y += 18;
+          });
+        }
+      });
+  
+      // If ends inside code block
+      flushCodeBlock();
+  
+      // Footer
+      y = doc.internal.pageSize.getHeight() - 40;
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text('— End of Notes —', doc.internal.pageSize.getWidth() / 2, y, { align: 'center' });
+  
+      doc.save(`${note.topic.replace(/[^a-z0-9]/gi, '_')}_notes.pdf`);
+    };
 
   const paddedNotes = [...notes, ...Array(6 - notes.length).fill(null)];
 
@@ -204,7 +276,9 @@ export default function ProfilePage() {
               <Link href="/premium">
                 <button className="w-full bg-[#3f5bdc] text-white py-2 rounded-lg hover:bg-[#3348b8]">Go Premium</button>
               </Link>
-              <button className="w-full bg-[#3f5bdc] text-white py-2 rounded-lg hover:bg-[#3348b8]">Enter in Class</button>
+              <button 
+               onClick={handleClassroomClick}
+               className="w-full bg-[#3f5bdc] text-white py-2 rounded-lg hover:bg-[#3348b8]">ClassRoom</button>
               <button
                 onClick={handleLogout}
                 className="w-full bg-[#e53e3e] text-white py-2 rounded-lg hover:bg-[#c53030]"

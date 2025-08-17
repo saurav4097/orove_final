@@ -32,9 +32,13 @@ export default function HistoryPage() {
 
   const formatResponse = (response: string) => {
     return response
-      .replace(/#+\s?(.*)/g, (match, p1) => `\n\n${p1.toUpperCase()}\n`)
+      // Headings (# Something)
+      .replace(/#+\s?(.*)/g, (match, p1) => `\n\n## ${p1}\n`)
+      // Bold points (**something**)
       .replace(/\*\*(.*?)\*\*/g, (match, p1) => `\n${p1}:\n`)
+      // Bullets (- or *)
       .replace(/[-*]\s/g, '• ')
+      // Remove extra line breaks
       .replace(/\n{2,}/g, '\n\n');
   };
 
@@ -44,40 +48,115 @@ export default function HistoryPage() {
     const maxWidth = 500;
     let y = margin;
 
-    // Set pale yellow background
-    doc.setFillColor(255, 253, 208); // pale yellow
+    // Background
+    doc.setFillColor(255, 253, 208); // pale yellow paper
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
 
     // Title
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(51, 0, 102); // dark purple
+    doc.setFontSize(22);
+    doc.setTextColor(0, 51, 153); // navy blue
     doc.text(note.topic, margin, y);
     y += 30;
 
-    // Subtitle
-    doc.setFontSize(12);
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
+    // Created date
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.setFont('helvetica', 'italic');
     doc.text(`Created At: ${new Date(note.createdAt).toLocaleString()}`, margin, y);
     y += 30;
 
-    // Formatted response
+    // Format response
     const response = formatResponse(note.response);
-    const lines = doc.splitTextToSize(response, maxWidth);
+    const lines = response.split('\n');
 
-    doc.setFontSize(13);
-    doc.setTextColor(0, 0, 0);
+    let insideCodeBlock = false;
+    let codeBuffer: string[] = [];
+
+    const flushCodeBlock = () => {
+      if (codeBuffer.length === 0) return;
+
+      const codeLines = doc.splitTextToSize(codeBuffer.join('\n'), maxWidth - 20);
+      const boxHeight = codeLines.length * 16 + 20;
+
+      // Draw black rectangle
+      doc.setFillColor(0, 0, 0);
+      doc.rect(margin - 5, y, maxWidth + 10, boxHeight, 'F');
+
+      // White code text
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(255, 255, 255);
+
+      let codeY = y + 18;
+      codeLines.forEach(cl => {
+        doc.text(cl, margin, codeY);
+        codeY += 16;
+      });
+
+      y += boxHeight + 10;
+
+      // Reset font
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(13);
+      doc.setTextColor(0);
+
+      codeBuffer = [];
+    };
+
     lines.forEach(line => {
-      if (y > doc.internal.pageSize.getHeight() - margin) {
-        doc.addPage();
-        doc.setFillColor(255, 253, 208);
-        doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
-        y = margin;
+      if (line.trim().startsWith('```')) {
+        if (insideCodeBlock) {
+          // End block
+          flushCodeBlock();
+        }
+        insideCodeBlock = !insideCodeBlock;
+      } else if (insideCodeBlock) {
+        codeBuffer.push(line);
+      } else if (line.startsWith('## ')) {
+        // Heading
+        y += 10;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(0, 51, 153);
+        doc.text(line.replace('## ', ''), margin, y);
+        y += 25;
+      } else if (line.match(/^[A-Za-z0-9].*:\s*$/)) {
+        // Bold subheading style
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(102, 0, 153);
+        doc.text(line.trim(), margin, y);
+        y += 20;
+      } else if (line.trim() !== '') {
+        // Normal paragraph or bullet
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+
+        const wrapped = doc.splitTextToSize(line, maxWidth);
+        wrapped.forEach(l => {
+          if (y > doc.internal.pageSize.getHeight() - margin) {
+            doc.addPage();
+            doc.setFillColor(255, 253, 208);
+            doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
+            y = margin;
+          }
+          doc.text(l, margin, y);
+          y += 18;
+        });
       }
-      doc.text(line, margin, y);
-      y += 20;
     });
+
+    // If ends inside code block
+    flushCodeBlock();
+
+    // Footer
+    y = doc.internal.pageSize.getHeight() - 40;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('— End of Notes —', doc.internal.pageSize.getWidth() / 2, y, { align: 'center' });
 
     doc.save(`${note.topic.replace(/[^a-z0-9]/gi, '_')}_notes.pdf`);
   };

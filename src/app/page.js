@@ -19,11 +19,33 @@ export default function HomePage() {
 
     checkAuth();
   }, []);
- 
+ const handleLogout = async () => {
+    await fetch("/api/logout");
+    router.push("/");
+  };
   const handleClassroomClick = () => {
     if (isLoggedIn === null) return;
     if (isLoggedIn) {
+     
       router.push("/classroom");
+    } else {
+      router.push("/login");
+    }
+  };
+const handleNotesClick = () => {
+    if (isLoggedIn === null) return;
+    if (isLoggedIn) {
+     
+      router.push("/history");
+    } else {
+      router.push("/login");
+    }
+  };
+const handleSubscriptionsClick = () => {
+    if (isLoggedIn === null) return;
+    if (isLoggedIn) {
+     
+      router.push("/premium");
     } else {
       router.push("/login");
     }
@@ -55,12 +77,13 @@ export default function HomePage() {
 
   {/* Desktop Menu */}
   <ul className="hidden md:flex gap-6 text-sm font-medium">
-    <li><Link href="#">Home</Link></li>
-    <li><Link href="#">Teacher Tools</Link></li>
-    <li><Link href="#">Shop</Link></li>
+    
+    <li><button onClick={handleClassroomClick}>ClassRoom</button></li>
+    <li><button onClick={handleNotesClick}>Notes</button></li>
     <li><button onClick={handleAccountClick}>Account</button></li>
+    <li><button onClick={handleSubscriptionsClick}>Subscriptions</button></li>
     <li><Link href="#">Contact</Link></li>
-    <li><Link href="#">Log Out</Link></li>
+    <li><button onClick={handleLogout}>Log Out</button></li>
   </ul>
 
   {/* Mobile Hamburger Icon */}
@@ -73,12 +96,12 @@ export default function HomePage() {
   {/* Mobile Menu Dropdown */}
   {menuOpen && (
     <ul className="absolute top-full right-6 bg-white text-gray-800 rounded-md shadow-lg py-4 px-6 space-y-3 w-48 md:hidden z-50">
-      <li><Link href="#">Home</Link></li>
-      <li><Link href="#">Teacher Tools</Link></li>
-      <li><Link href="#">Shop</Link></li>
-      <li><button onClick={handleAccountClick}>Account</button></li>
-      <li><Link href="#">Contact</Link></li>
-      <li><Link href="#">Log Out</Link></li>
+      <li><button onClick={handleClassroomClick}>ClassRoom</button></li>
+    <li><button onClick={handleNotesClick}>Notes</button></li>
+    <li><button onClick={handleAccountClick}>Account</button></li>
+    <li><button onClick={handleSubscriptionsClick}>Subscriptions</button></li>
+    <li><Link href="#">Contact</Link></li>
+    <li><button onClick={handleLogout}>Log Out</button></li>
     </ul>
   )}
 </nav>
@@ -173,7 +196,7 @@ export default function HomePage() {
         <div className="grid md:grid-cols-3 gap-8">
           {/* Gold Plan */}
           <div className="bg-yellow-300 text-black p-6 rounded-2xl shadow-lg">
-            <h3 className="text-2xl font-bold mb-4">Gold Access - ₹99/month</h3>
+            <h3 className="text-2xl font-bold mb-4">Gold Access - ₹199/month</h3>
             <ul className="list-disc pl-6 space-y-2">
               <li>Unlimited Class Lectures</li>
               <li>Unlimited Topics</li>
@@ -186,7 +209,7 @@ export default function HomePage() {
 
           {/* Coming Soon Plan 1 */}
           <div className="bg-white text-gray-700 p-6 rounded-2xl border border-gray-300 opacity-50">
-            <h3 className="text-2xl font-bold mb-4">Platinum Plus - ₹199/month</h3>
+            <h3 className="text-2xl font-bold mb-4">Platinum Plus - ₹499/month</h3>
             <ul className="list-disc pl-6 space-y-2">
               <li>Everything in Gold</li>
               <li>AI Study Partner</li>
@@ -198,7 +221,7 @@ export default function HomePage() {
 
           {/* Coming Soon Plan 2 */}
           <div className="bg-white text-gray-700 p-6 rounded-2xl border border-gray-300 opacity-50">
-            <h3 className="text-2xl font-bold mb-4">Diamond AI Elite - ₹499/month</h3>
+            <h3 className="text-2xl font-bold mb-4">Diamond AI Elite - ₹999/month</h3>
             <ul className="list-disc pl-6 space-y-2">
               <li>All Features +</li>
               <li>1-on-1 AI Mentorship</li>
