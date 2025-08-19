@@ -71,7 +71,7 @@ const handleSubscriptionsClick = () => {
 <nav className="flex justify-between items-center px-6 py-4 bg-transparent backdrop-blur-md z-10 relative">
   {/* Logo */}
   <div className="flex items-center gap-2 text-xl font-bold">
-    <Image src="/robologo.png" alt="logo" width={30} height={30} />
+    <Image src="/orove-logo2.png" alt="logo" width={30} height={30} />
     <span>OROVE</span>
   </div>
 

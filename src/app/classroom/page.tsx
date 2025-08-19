@@ -81,7 +81,7 @@ const handleSearch = async () => {
   // 3️⃣ Update both segments
   setSegments([`Topic: ${query}`, englishAnswer]);
   setSegments2([`Topic: ${query}`, hinglishAnswer]);
-
+ setGreeting(null);
   // Reset doubts etc.
   setDoubtCount(1);
   setDoubtQuery("");

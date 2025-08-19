@@ -37,3 +37,8 @@
 .chalk-text strong {
   color: #ffd700;
 }
+.blackboard {
+  -webkit-overflow-scrolling: touch; /* momentum scroll on iOS */
+  overscroll-behavior: contain;      /* keep scroll inside the board */
+  touch-action: pan-y;               /* allow vertical swipe */
+}
