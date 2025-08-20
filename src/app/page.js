@@ -100,7 +100,7 @@ const handleSubscriptionsClick = () => {
     <li><button onClick={handleNotesClick}>Notes</button></li>
     <li><button onClick={handleAccountClick}>Account</button></li>
     <li><button onClick={handleSubscriptionsClick}>Subscriptions</button></li>
-    <li><Link href="#">Contact</Link></li>
+    <li><Link href="/contact">Contact</Link></li>
     <li><button onClick={handleLogout}>Log Out</button></li>
     </ul>
   )}
